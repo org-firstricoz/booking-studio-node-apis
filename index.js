@@ -1,10 +1,8 @@
 const { mongoose } = require('mongoose');
 const http = require('http');
 const bodyParser = require('body-parser');
-const express = require('express')
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken')
 const Razorpay = require('razorpay')
 const otp = require('./utils/otp')
 const path = require('path');
@@ -14,6 +12,10 @@ const fs = require('fs');
 const { table, log } = require('console');
 const { Server } = require('socket.io');
 
+
+const User = require('./database/user_data/user')
+const Chat = require('./database/user_data/chats')
+const Message = require('./database/user_data/message')
 
 
 const express = require('express');
@@ -30,11 +32,14 @@ const io = new Server(server);
 app.use(bodyParser.json());
 app.use(imageUpload());
 app.use(cors());
-app.listen()
 
 app.use('/api/v1/user', userRouter);
-app.use('api/v1/agent', agentRouter);
+app.use('/api/v1/agent', agentRouter);
+app.use('/', (req, res) => {
+    res.json({ status: 'Success', message: "UP AND RUNNING" })
 
+})
+const clients = {}
 
 
 io.on("connection", async (socket) => {
@@ -44,6 +49,7 @@ io.on("connection", async (socket) => {
             clients[id] = socket
             log(id)
             socket.on('chat_data', async (msg) => {
+                console.log(msg);
                 const chatsJson = [];
                 const chats = await Chat.find({ $or: [{ user_id: msg, }, { agent_id: msg }] })
                 await Promise.all(chats.map(async (e) => {
@@ -58,7 +64,7 @@ io.on("connection", async (socket) => {
                     }
                     chatsJson.push(data);
                 }))
-                // log(chatsJson);
+                log(chatsJson);
                 socket.emit('chat_data', chatsJson);
             })
         });
@@ -166,3 +172,8 @@ io.on("connection", async (socket) => {
     }
 
 })
+const PORT = process.env.PORT || 3000;
+const DOMAIN = process.env.DOMAIN || "192.168.0.106";
+server.listen(PORT, DOMAIN, () => {
+    console.log(`Server is running on http://${DOMAIN}:${PORT}`);
+});

@@ -6,13 +6,13 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 const Razorpay = require('razorpay')
-const otp = require('./utils/otp')
+const otp = require('../utils/otp')
 const path = require('path');
 const moment = require('moment');
 const imageUpload = require('express-fileupload')
 const fs = require('fs');
 const { table, log } = require('console');
-const { Server } = require('socket.io');
+
 
 
 
@@ -34,7 +34,6 @@ const City = require('../database/city')
 const Help = require('../database/help');
 const Bank = require('../database/bank');
 const axios = require('axios');
-const jwt = require('jsonwebtoken');
 
 const authHeader =
     "Basic " + Buffer.from(`${process.env.KEY_ID}:${process.env.KEY_SECRET}`).toString("base64");
@@ -262,15 +261,15 @@ exports.addBankAccount = async (req, res) => {
         const { id } = req.params;
         const body = req.body;
         log(body);
-        const bank_created = await Bank.create(body)
+        const bank_created = await Bank.create(body);
         const agent = await Agent.findOne({ agentId: body.agentId })
         const userData = {
             contact_id: agent.contact_id,
             account_type: "bank_account",
             bank_account: {
-                name: bank.holderName,
-                ifsc: bank.ifscCode,
-                account_number: bank.accountNo,
+                name: bank_created.holderName,
+                ifsc: bank_created.ifscCode,
+                account_number: bank_created.accountNo,
             },
         };
         // creating a fund account
@@ -341,3 +340,27 @@ exports.processWithdrawal = async (req, res) => {
 }
 
 
+exports.deleteAgent = async (req, res) => {
+    try {
+        const { agentId } = req.params;
+        // console.log(req.body.number)
+        if (req.body.number) {
+            const agent = await Agent.findOne({ number: req.body.number })
+            if (agent) {
+
+                await Agent.deleteOne({ phoneNumber: req.body.number }).exec()
+                console.log('account deleted')
+
+                return res.status(200).json({ status: 'Success' })
+            }
+            return res.status(300).json({ status: false, error: 'No user Found' })
+        } else {
+            const data = await Agent.deleteOne({ agentId: agentId }).exec()
+        }
+        console.log('account deleted')
+        res.status(200).send('delete')
+    } catch (e) {
+        console.log(e)
+        res.status(500).send(e)
+    }
+}

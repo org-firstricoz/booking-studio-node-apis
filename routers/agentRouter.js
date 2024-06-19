@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { registerAgent, verifyAgent, createStudio, updateAgent, getBankDetails, addBankAccount, processWithdrawal, updateAgentSchedule, } = require('../controllers/agentControllers'); // Assuming handlers are defined somewhere
+const { otp } = require('../controllers/userControllers.js');
 
 const {
     getCategoryList,
@@ -14,7 +15,7 @@ const {
     createAgentIssue,
 } = require('../controllers/agentDataControllers');
 
-
+router.get('/otp', otp);
 router.post('/register', registerAgent);
 router.get('/verification/:agentId', verifyAgent);
 router.post('/studio', createStudio);
@@ -32,5 +33,5 @@ router.get('/studio/:agentId', getAgentStudios);
 router.get('/earning/:agentId', getAgentEarnings);
 router.get('/issues/:agentId', getAgentIssues);
 router.post('/issues/:agentId', createAgentIssue);
-
+router.post('/delete/:agentId')
 module.exports = router;

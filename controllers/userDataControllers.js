@@ -6,13 +6,13 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 const Razorpay = require('razorpay')
-const otp = require('./utils/otp')
+const otp = require('../utils/otp')
 const path = require('path');
 const moment = require('moment');
 const imageUpload = require('express-fileupload')
 const fs = require('fs');
 const { table, log } = require('console');
-const { Server } = require('socket.io');
+
 
 
 
@@ -34,7 +34,6 @@ const City = require('../database/city')
 const Help = require('../database/help');
 const Bank = require('../database/bank');
 const axios = require('axios');
-const jwt = require('jsonwebtoken');
 
 exports.homeview = async (req, res) => {
     try {
