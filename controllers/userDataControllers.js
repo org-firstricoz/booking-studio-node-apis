@@ -199,7 +199,7 @@ exports.getAgent = async (req, res) => {
         const { agentID } = req.query
 
         const agentAllData = await getAgentAllData(agentID);
-
+        // console.log(agentAllData);
         res.status(200).send(agentAllData)
 
     } catch (error) {
@@ -283,6 +283,26 @@ async function getCategories() {
     if (categories.length != 0) {
 
         return categories.map((e) => e.toJSON());
+    }
+    return [];
+}
+
+
+async function getSearchResult(search) {
+    const regex = new RegExp(search, "i");
+    const listOfStudio = await Studio.find({
+        $or: [
+            { name: { $regex: regex } },
+            { location: { $regex: regex } },
+            { address: { $regex: regex } },
+            { category: { $regex: regex } },
+            { description: { $regex: regex } }
+        ],
+    })
+
+    if (listOfStudio.length != 0) {
+        const data = listOfStudio.map((e) => e.toJSON())
+        return data;
     }
     return [];
 }
