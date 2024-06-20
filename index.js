@@ -173,7 +173,7 @@ io.on("connection", async (socket) => {
 
 })
 const PORT = process.env.PORT || 3000;
-const DOMAIN = process.env.DOMAIN || "192.168.0.106";
-server.listen(PORT, DOMAIN, () => {
-    console.log(`Server is running on http://${DOMAIN}:${PORT}`);
+// const DOMAIN = process.env.DOMAIN || "";
+server.listen(PORT,  () => {
+    console.log(`Server is running ...`);
 });
