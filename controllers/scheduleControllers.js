@@ -34,6 +34,7 @@ const City = require('../database/city')
 const Help = require('../database/help');
 const Bank = require('../database/bank');
 const axios = require('axios');
+require('dotenv').config();
 const authHeader =
     "Basic " + Buffer.from(`${process.env.KEY_ID}:${process.env.KEY_SECRET}`).toString("base64");
 

@@ -16,7 +16,7 @@ const { Server } = require('socket.io');
 const User = require('./database/user_data/user')
 const Chat = require('./database/user_data/chats')
 const Message = require('./database/user_data/message')
-
+require('dotenv').config();
 
 const express = require('express');
 const database = require('./database/database');

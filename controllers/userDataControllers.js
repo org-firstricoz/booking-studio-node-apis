@@ -12,7 +12,7 @@ const moment = require('moment');
 const imageUpload = require('express-fileupload')
 const fs = require('fs');
 const { table, log } = require('console');
-
+require('dotenv').config();
 
 
 
