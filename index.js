@@ -22,6 +22,7 @@ const express = require('express');
 const database = require('./database/database');
 const userRouter = require('./routers/userRouter');
 const agentRouter = require('./routers/agentRouter');
+const AgentDetails = require('./database/agent');
 
 
 database.connect()
@@ -69,10 +70,31 @@ io.on("connection", async (socket) => {
             })
         });
         socket.on('user', (id) => {
+
             clients[id] = socket
             log(id)
+            socket.on('chat_data', async (msg) => {
+                
+                const chatsJson = [];
+                const chats = await Chat.find({ $or: [{ user_id: id, }, { agent_id: id }] })
+                await Promise.all(chats.map(async (e) => {
+                    const agent = await AgentDetails.findOne({ agentId: e.agent_id });
+                    const data = {
+                        'name': agent.name,
+                        'photoUrl': agent.photoUrl,
+                        'time': e.time,
+                        'id': e.id,
+                        'userId': e.user_id,
+                        'agentId': e.agent_id,
+                    }
+                    chatsJson.push(data);
+                }))
+                log(chatsJson);
+                socket.emit('chat_data', chatsJson);
+            })
 
         })
+
         socket.on('messageA', async (msg) => {
             try {
                 const message = JSON.parse(msg)
@@ -80,7 +102,6 @@ io.on("connection", async (socket) => {
                 const DBmessages = await Message.create(message);
                 const chat = await Chat.findOne({ agent_id: DBmessages.agentID, user_id: DBmessages.uuid })
                 if (!chat) {
-                    await Chat.create({ agent_id: DBmessages.agentID, user_id: DBmessages.uuid })
                     await Chat.create({ agent_id: DBmessages.agentID, user_id: DBmessages.uuid })
                     const chatsJson = [];
                     const chats = await Chat.find({ $or: [{ user_id: msg, }, { agent_id: msg }] })
@@ -101,7 +122,7 @@ io.on("connection", async (socket) => {
                 }
                 log(clients)
                 if (clients[DBmessages.uuid]) {
-                    clients[DBmessages.uuid].emit('message', message)
+                    clients[DBmessages.uuid].emit('message', DBmessages)
                 }
             } catch (e) {
                 log(e)
@@ -118,10 +139,10 @@ io.on("connection", async (socket) => {
                     const chatsJson = [];
                     const chats = await Chat.find({ $or: [{ user_id: msg, }, { agent_id: msg }] })
                     await Promise.all(chats.map(async (e) => {
-                        const user = await User.findOne({ uuid: e.user_id });
+                        const agent = await AgentDetails.findOne({ uuid: e.user_id });
                         const data = {
-                            'name': user.name,
-                            'photoUrl': user.photoUrl,
+                            'name': agent.name,
+                            'photoUrl': agent.photoUrl,
                             'time': e.time,
                             'id': e.id,
                             'userId': e.user_id,
@@ -135,7 +156,7 @@ io.on("connection", async (socket) => {
                 }
                 log(DBmessages.toJSON())
                 if (clients[DBmessages.agentID]) {
-                    clients[DBmessages.agentID].emit('message', message)
+                    clients[DBmessages.agentID].emit('message', DBmessages)
                 }
             } catch (e) {
                 log(e)
@@ -148,24 +169,7 @@ io.on("connection", async (socket) => {
             const JSONmessages = messages.map((e) => e.toJSON())
             socket.emit('chat', JSONmessages)
         })
-        socket.on('chat_data', async (msg) => {
-            const chatsJson = [];
-            const chats = await Chat.find({ $or: [{ user_id: msg, }, { agent_id: msg }] })
-            await Promise.all(chats.map(async (e) => {
-                const user = await User.findOne({ uuid: e.user_id });
-                const data = {
-                    'name': user.name,
-                    'photoUrl': user.photoUrl,
-                    'time': e.time,
-                    'id': e.id,
-                    'userId': e.user_id,
-                    'agentId': e.agent_id,
-                }
-                chatsJson.push(data);
-            }))
-            log(chatsJson);
-            socket.emit('chat_data', chatsJson);
-        })
+
     } catch (error) {
         // log(e);
         socket.emit('error', 'error')
@@ -174,6 +178,6 @@ io.on("connection", async (socket) => {
 })
 const PORT = process.env.PORT || 3000;
 // const DOMAIN = process.env.DOMAIN || "";
-server.listen(PORT,  () => {
+server.listen(PORT, () => {
     console.log(`Server is running ...`);
 });
