@@ -368,3 +368,66 @@ async function getNotifications(uuid) {
     return [];
 
 }
+
+async function getStudioAllDetails(studio_id) {
+    try {
+        const studio_details = await Studio.findOne({ id: studio_id }).populate('numberOfReviews').exec()
+        let rating = 0;
+        if (studio_details && studio_details.length != 0) {
+            const review = await Review.find({ studio_id: studio_details.id }).select('rating')
+            review.map((e) => {
+                const ratings = (rating += e.rating) / review.length
+                studio_details.rating = ratings;
+            })
+            return studio_details.toJSON();
+        }
+        return [];
+
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+
+async function getAgentDetails(studio_id) {
+    const ListOfAgentID = await Studio.findOne({ id: studio_id }).select('agents')
+
+    if (ListOfAgentID.length == 0) {
+        return [];
+    } else {
+        const ListOfAgent = await Agent.find({ agentId: { $in: ListOfAgentID.agents } })
+
+        return ListOfAgent.map((e) => e.toJSON())
+
+    }
+}
+
+
+async function getReviewData(studio_id) {
+
+    const listofreviews = await Review.find({ studio_id: studio_id }).sort({ time: -1 })
+
+    if (listofreviews.length == 0) {
+        return []
+    }
+    const data = await Promise.all(listofreviews.map(async (e) => {
+        const user = await User.findOne({ uuid: e.uuid });
+        if (user != null) {
+            return {
+                'uuid': e.uuid,
+                'name': user.name,
+                'reviewId': e.reviewId,
+                'photoUrl': user.photoUrl,
+                'review': e.review,
+                'rating': e.rating,
+                'time': e.time,
+            };
+        } else {
+            return
+        }
+    }))
+    console.log
+        (data)
+    return data.filter((e) => e != undefined)
+}
+

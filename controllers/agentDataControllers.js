@@ -231,24 +231,21 @@ exports.createAgentIssue = async (req, res) => {
 
 
 
-async function getStudioAllDetails(studio_id) {
-    try {
-        const studio_details = await Studio.findOne({ id: studio_id }).populate('numberOfReviews').exec()
-        let rating = 0;
-        if (studio_details && studio_details.length != 0) {
-            const review = await Review.find({ studio_id: studio_details.id }).select('rating')
-            review.map((e) => {
-                const ratings = (rating += e.rating) / review.length
-                studio_details.rating = ratings;
-            })
-            return studio_details.toJSON();
-        }
-        return [];
 
-    } catch (err) {
-        console.log(err)
+
+
+
+async function getCategories() {
+    const categories = await Categories.find({});
+
+
+    if (categories.length != 0) {
+
+        return categories.map((e) => e.toJSON());
     }
+    return [];
 }
+
 async function getReviewData(studio_id) {
 
     const listofreviews = await Review.find({ studio_id: studio_id }).sort({ time: -1 })
@@ -278,16 +275,21 @@ async function getReviewData(studio_id) {
 }
 
 
+async function getStudioAllDetails(studio_id) {
+    try {
+        const studio_details = await Studio.findOne({ id: studio_id }).populate('numberOfReviews').exec()
+        let rating = 0;
+        if (studio_details && studio_details.length != 0) {
+            const review = await Review.find({ studio_id: studio_details.id }).select('rating')
+            review.map((e) => {
+                const ratings = (rating += e.rating) / review.length
+                studio_details.rating = ratings;
+            })
+            return studio_details.toJSON();
+        }
+        return [];
 
-
-
-async function getCategories() {
-    const categories = await Categories.find({});
-
-
-    if (categories.length != 0) {
-
-        return categories.map((e) => e.toJSON());
+    } catch (err) {
+        console.log(err)
     }
-    return [];
 }
