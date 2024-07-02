@@ -16,8 +16,8 @@ const orderSchema = new mongoose.Schema({
     status: { type: String, required: true },
     attempts: { type: Number, required: true, default: 0 },
     notes: [String],
-    created_at: { type: Date, default: Date.now }
-});
+    
+},{timestamps:true});
 
 const Order = mongoose.model('Order', orderSchema);
 
